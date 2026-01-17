@@ -45,6 +45,10 @@
                     <i class="bi bi-magic me-2"></i>模板
                 </a>
 
+                <a href="{{ url_for('public.skills_gallery') }}" class="nav-pill-link {{ 'active' if request.endpoint == 'public.skills_gallery' else '' }}">
+                    <i class="bi bi-puzzle-fill me-2"></i>Skills
+                </a>
+
                 {% if request.endpoint in ['public.index', 'public.templates_index'] %}
                 <a href="#" class="nav-pill-link d-md-none" data-bs-toggle="offcanvas" data-bs-target="#mobileTagSidebar">
                     <i class="bi bi-funnel-fill me-2"></i>筛选

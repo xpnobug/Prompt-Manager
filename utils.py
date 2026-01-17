@@ -1,6 +1,7 @@
 import os
 import uuid
 import urllib.request
+import re
 from PIL import Image as PilImage
 from flask import current_app
 
@@ -9,6 +10,11 @@ try:
     from botocore.exceptions import ClientError
 except ImportError:
     boto3 = None
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'}
 THUMB_SIZE = (400, 400)
@@ -246,3 +252,83 @@ def ensure_local_resources(app):
                 urllib.request.urlretrieve(url, local_path)
             except Exception as e:
                 print(f"Failed to download {relative_path}: {e}")
+
+
+# ==================== Skill 相关工具函数 ====================
+
+def parse_skill_markdown(md_content):
+    """
+    解析 SKILL.md 文件，提取 Frontmatter 和内容
+
+    Args:
+        md_content (str): Markdown 文件内容
+
+    Returns:
+        tuple: (frontmatter_dict, content_markdown)
+    """
+    if not yaml:
+        raise ImportError("需要安装 PyYAML 库: pip install pyyaml")
+
+    # 匹配 frontmatter（YAML格式）
+    pattern = r'^---\s*\n(.*?)\n---\s*\n(.*)$'
+    match = re.match(pattern, md_content, re.DOTALL)
+
+    if not match:
+        return {}, md_content
+
+    frontmatter_yaml = match.group(1)
+    content_md = match.group(2).strip()
+
+    try:
+        frontmatter = yaml.safe_load(frontmatter_yaml)
+    except yaml.YAMLError:
+        frontmatter = {}
+
+    return frontmatter, content_md
+
+
+def extract_trigger_keywords(description):
+    """
+    从 description 中提取触发词
+
+    Args:
+        description (str): Skill 描述文本
+
+    Returns:
+        list: 触发关键词列表
+    """
+    if not description:
+        return []
+
+    # 格式：描述。触发词：A、B、C
+    pattern = r'触发词[:：]\s*(.+?)(?:\.|$)'
+    match = re.search(pattern, description)
+
+    if match:
+        keywords_str = match.group(1)
+        # 按中文顿号、英文逗号、中文逗号分割
+        keywords = re.split(r'[、,，]', keywords_str)
+        return [kw.strip() for kw in keywords if kw.strip()]
+
+    return []
+
+
+def estimate_tokens(content):
+    """
+    粗略估算 Markdown 的 token 数（中文约1.3字符/token）
+
+    Args:
+        content (str): Markdown 内容
+
+    Returns:
+        int: 估算的 token 数
+    """
+    # 移除代码块（token 密度较高）
+    content_no_code = re.sub(r'```.*?```', '', content, flags=re.DOTALL)
+
+    # 中文字符 + 英文单词
+    chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', content_no_code))
+    english_words = len(re.findall(r'\b[a-zA-Z]+\b', content_no_code))
+
+    # 中文 1.3 char/token, 英文 0.75 word/token
+    return int(chinese_chars / 1.3 + english_words / 0.75)

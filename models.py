@@ -171,3 +171,79 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     is_sensitive = db.Column(db.Boolean, default=False)
+
+
+class Skill(db.Model):
+    """Claude Skill 模型"""
+    __tablename__ = 'skill'
+
+    # 基础字段
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False, index=True)  # skill 名称（唯一标识）
+    display_name = db.Column(db.String(200))  # 显示名称（中文）
+    description = db.Column(db.Text)  # 描述（含触发词）
+
+    # Frontmatter 字段
+    model = db.Column(db.String(50))  # claude-sonnet-4-5, claude-opus-4-5
+    user_invocable = db.Column(db.Boolean, default=True)  # 是否可手动调用
+    allowed_tools = db.Column(db.Text)  # JSON 字符串: ['Read', 'Write', 'Edit']
+
+    # 分类字段
+    category = db.Column(db.String(50), index=True)  # general / project-specific
+    tier = db.Column(db.String(20))  # Tier 1 / Tier 2（分层设计）
+    tags_json = db.Column(db.Text)  # JSON 字符串: ['开发', '规范', 'CRUD']
+
+    # 内容字段
+    content = db.Column(db.Text)  # Skill 完整内容（Markdown）
+    file_path = db.Column(db.String(500))  # SKILL.md 文件路径
+
+    # 元数据
+    trigger_keywords = db.Column(db.Text)  # JSON 字符串：触发关键词数组
+    token_estimate = db.Column(db.Integer)  # Token 估算
+    usage_scenarios = db.Column(db.Text)  # JSON 字符串：适用场景数组
+
+    # 统计字段
+    views_count = db.Column(db.Integer, default=0)  # 浏览次数
+    usage_count = db.Column(db.Integer, default=0)  # 使用次数
+    star_count = db.Column(db.Integer, default=0)  # 收藏次数
+
+    # 状态字段
+    status = db.Column(db.String(20), default='active')  # active / archived
+    version = db.Column(db.String(20))  # 版本号
+
+    # 时间字段
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
+    def to_dict(self, include_content=False):
+        """序列化为字典"""
+        import json
+
+        data = {
+            "id": self.id,
+            "name": self.name,
+            "display_name": self.display_name or self.name,
+            "description": self.description,
+            "model": self.model,
+            "user_invocable": self.user_invocable,
+            "allowed_tools": json.loads(self.allowed_tools) if self.allowed_tools else [],
+            "category": self.category,
+            "tier": self.tier,
+            "tags": json.loads(self.tags_json) if self.tags_json else [],
+            "trigger_keywords": json.loads(self.trigger_keywords) if self.trigger_keywords else [],
+            "token_estimate": self.token_estimate,
+            "usage_scenarios": json.loads(self.usage_scenarios) if self.usage_scenarios else [],
+            "views_count": self.views_count,
+            "usage_count": self.usage_count,
+            "star_count": self.star_count,
+            "status": self.status,
+            "version": self.version,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }
+
+        if include_content:
+            data["content"] = self.content
+            data["file_path"] = self.file_path
+
+        return data

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Skills 市场 - Prompt Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex w-100" style="min-height: 100vh;">
+
+    <!-- 侧边栏 -->
+    <div class="d-none d-md-block flex-shrink-0" style="width: 240px; z-index: 100;">
+        <div class="sidebar-sticky custom-scrollbar" style="max-height: calc(100vh - 80px); overflow-y: auto;">
+            <div class="px-3 mb-4 mt-2">
+                <h5 class="fw-bold m-0" style="font-family: serif; font-style: italic; letter-spacing: 1px;">Claude<br>Skills</h5>
+            </div>
+
+            <div class="nav-category">Library</div>
+            <a href="#" class="nav-item-apple active" data-category="" onclick="filterByCategory(''); return false;">
+                <i class="bi bi-puzzle-fill me-3 small"></i>All Skills
+            </a>
+
+            <div class="nav-category mt-4 d-flex justify-content-between align-items-center">
+                <span>Categories</span>
+                <span class="badge bg-secondary bg-opacity-25 rounded-pill small" style="font-size: 0.65rem;" id="category-count">2</span>
+            </div>
+
+            <a href="#" class="nav-item-apple" data-category="general" onclick="filterByCategory('general'); return false;">
+                <i class="bi bi-gear-fill me-3 small opacity-50"></i>通用 Skills
+            </a>
+            <a href="#" class="nav-item-apple" data-category="project-specific" onclick="filterByCategory('project-specific'); return false;">
+                <i class="bi bi-folder-fill me-3 small opacity-50"></i>项目特定
+            </a>
+
+            {% if current_user.is_authenticated %}
+            <div class="nav-category mt-4">Admin</div>
+            <a href="{{ url_for('admin.skills_manage') }}" class="nav-item-apple">
+                <i class="bi bi-sliders me-3 small opacity-50"></i>管理 Skills
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="flex-grow-1 transition-bg" style="background: var(--bg-color); overflow-x: hidden;">
+
+        <!-- 页面头部 -->
+        <div class="px-4 px-lg-5 pt-5 pb-4 d-flex flex-wrap justify-content-between align-items-end">
+            <div class="mb-3 mb-md-0">
+                <h1 class="fw-bold mb-1 art-title" style="font-size: 2.5rem; letter-spacing: -1px;" id="page-title">
+                    Skills 市场
+                </h1>
+                <p class="m-0 small" style="color: var(--text-secondary);" id="skills-count">
+                    加载中...
+                </p>
+            </div>
+
+            <div class="d-block w-100 w-md-auto mt-2 mt-md-0" style="max-width: 400px;">
+                <!-- 搜索框 -->
+                <div class="position-relative">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" id="search-input"
+                           class="form-control border-0 shadow-sm rounded-pill py-2"
+                           placeholder="搜索 Skills..."
+                           style="width: 100%; padding-left: 2.5rem; background: var(--sidebar-bg); color: var(--text-primary);">
+                </div>
+
+                <!-- 排序控件 -->
+                <div class="w-100 d-flex justify-content-end mt-3 px-1">
+                    <nav class="segmented-control shadow-sm">
+                        <a href="#" class="nav-link active" data-sort="latest" onclick="sortBy('latest'); return false;">
+                           <i class="bi bi-clock-history"></i> <span>最新</span>
+                        </a>
+                        <a href="#" class="nav-link" data-sort="popular" onclick="sortBy('popular'); return false;">
+                           <i class="bi bi-fire"></i> <span>热度</span>
+                        </a>
+                        <a href="#" class="nav-link" data-sort="name" onclick="sortBy('name'); return false;">
+                           <i class="bi bi-sort-alpha-down"></i> <span>名称</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills 瀑布流 -->
+        <div class="px-2 px-md-4 px-lg-5 pb-5">
+            <div class="skill-masonry" id="skills-grid">
+                <!-- 加载占位 -->
+                <div class="text-center py-5 w-100" style="color: var(--text-secondary); break-inside: avoid;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-3">正在加载 Skills...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分页 -->
+        <div class="pagination-container" id="pagination-container" style="display: none;">
+            <nav class="pagination-modern" id="pagination">
+            </nav>
+        </div>
+
+    </div>
+</div>
+
+<!-- 移动端侧边栏 -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileCategorySidebar" style="background: var(--sidebar-bg);">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold">分类筛选</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body custom-scrollbar">
+        <div class="nav-category mt-0">Library</div>
+        <a href="#" class="nav-item-apple active" data-category="" onclick="filterByCategory(''); return false;">
+            <i class="bi bi-puzzle-fill me-3 small"></i>全部 Skills
+        </a>
+        <div class="nav-category mt-4">Categories</div>
+        <a href="#" class="nav-item-apple" data-category="general" onclick="filterByCategory('general'); return false;">
+            <i class="bi bi-gear-fill me-3 small opacity-50"></i>通用 Skills
+        </a>
+        <a href="#" class="nav-item-apple" data-category="project-specific" onclick="filterByCategory('project-specific'); return false;">
+            <i class="bi bi-folder-fill me-3 small opacity-50"></i>项目特定
+        </a>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/skill_gallery.js') }}"></script>
+{% endblock %}

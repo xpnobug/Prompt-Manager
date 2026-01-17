@@ -337,3 +337,114 @@ def api_upload():
     except Exception as e:
         current_app.logger.error(f"API Upload Error: {e}")
         return jsonify({'code': 500, 'message': f'上传失败: {str(e)}', 'data': None}), 500
+
+
+# ==================== Skills 相关路由 ====================
+
+@bp.route('/skills')
+def skills_gallery():
+    """Skills 画廊页面"""
+    return render_template('skills/skill_gallery.html')
+
+
+@bp.route('/skills/<int:skill_id>')
+def skill_detail(skill_id):
+    """Skill 详情页面"""
+    from services.skill_service import SkillService
+
+    skill = SkillService.get_skill_by_id(skill_id)
+    if not skill:
+        return render_template('404.html'), 404
+
+    # 增加浏览计数
+    SkillService.increment_views(skill_id)
+
+    return render_template('skills/skill_detail.html', skill=skill)
+
+
+@bp.route('/api/skills')
+def api_skills_list():
+    """获取 Skills 列表（API）"""
+    from services.skill_service import SkillService
+
+    keyword = request.args.get('q', '').strip()
+    category = request.args.get('category', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    sort = request.args.get('sort', 'latest')
+
+    # 限制 per_page 范围
+    if per_page == -1:
+        per_page = -1  # 允许获取全部
+    elif per_page > 100:
+        per_page = 100
+
+    result = SkillService.search_skills(
+        keyword=keyword if keyword else None,
+        category=category if category else None,
+        page=page,
+        per_page=per_page,
+        sort=sort
+    )
+
+    return jsonify({
+        'success': True,
+        'data': {
+            'skills': [skill.to_dict() for skill in result['skills']],
+            'total': result['total'],
+            'page': result['page'],
+            'per_page': result['per_page'],
+            'pages': result['pages']
+        }
+    })
+
+
+@bp.route('/api/skills/<int:skill_id>')
+def api_skill_detail(skill_id):
+    """获取 Skill 详情（API）"""
+    from services.skill_service import SkillService
+
+    skill = SkillService.get_skill_by_id(skill_id)
+    if not skill:
+        return jsonify({
+            'success': False,
+            'message': 'Skill 不存在'
+        }), 404
+
+    return jsonify({
+        'success': True,
+        'data': skill.to_dict(include_content=True)
+    })
+
+
+@bp.route('/api/skills/<int:skill_id>/usage', methods=['POST'])
+def api_skill_usage(skill_id):
+    """记录 Skill 使用次数"""
+    from services.skill_service import SkillService
+
+    skill = SkillService.get_skill_by_id(skill_id)
+    if not skill:
+        return jsonify({
+            'success': False,
+            'message': 'Skill 不存在'
+        }), 404
+
+    SkillService.increment_usage(skill_id)
+
+    return jsonify({
+        'success': True,
+        'message': '已记录使用'
+    })
+
+
+@bp.route('/api/skills/statistics')
+def api_skills_statistics():
+    """获取 Skills 统计信息"""
+    from services.skill_service import SkillService
+
+    stats = SkillService.get_statistics()
+
+    return jsonify({
+        'success': True,
+        'data': stats
+    })

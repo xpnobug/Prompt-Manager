@@ -510,3 +510,141 @@ def check_update():
             'current': current,
             'message': f'检查更新失败: {str(e)}'
         })
+
+
+# ==================== Skills 管理路由 ====================
+
+@bp.route('/skills-manage')
+@login_required
+def skills_manage():
+    """Skills 管理页面"""
+    from models import Skill
+
+    skills = Skill.query.order_by(Skill.created_at.desc()).all()
+    return render_template('admin_skills.html', skills=skills)
+
+
+@bp.route('/skills/import', methods=['POST'])
+@login_required
+def import_skills():
+    """批量导入 Skills（支持目录路径或文件上传）"""
+    from services.skill_service import SkillService
+
+    skills_dir = request.form.get('skills_dir', '')
+    uploaded_files = request.files.getlist('skill_files')
+
+    imported_count = 0
+    errors = []
+
+    # 方式1：从本地目录导入
+    if skills_dir:
+        try:
+            skills = SkillService.batch_import_from_directory(skills_dir)
+            imported_count += len(skills)
+        except Exception as e:
+            errors.append(f'目录导入失败: {str(e)}')
+
+    # 方式2：从上传文件导入
+    if uploaded_files and uploaded_files[0].filename:
+        temp_dir = os.path.join(current_app.instance_path, 'temp_skills_import')
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+
+        for file in uploaded_files:
+            if not file.filename:
+                continue
+
+            try:
+                filename = file.filename.lower()
+
+                if filename.endswith('.zip'):
+                    # 处理 ZIP 文件
+                    zip_path = os.path.join(temp_dir, file.filename)
+                    file.save(zip_path)
+
+                    # 解压 ZIP
+                    extract_dir = os.path.join(temp_dir, 'extracted_' + str(int(time.time())))
+                    with zipfile.ZipFile(zip_path, 'r') as zf:
+                        zf.extractall(extract_dir)
+
+                    # 导入解压后的目录
+                    skills = SkillService.batch_import_from_directory(extract_dir)
+                    imported_count += len(skills)
+
+                    # 清理
+                    import shutil
+                    shutil.rmtree(extract_dir, ignore_errors=True)
+                    os.remove(zip_path)
+
+                elif filename.endswith('.md'):
+                    # 直接处理 .md 文件
+                    content = file.read().decode('utf-8')
+                    skill = SkillService.import_from_content(
+                        filename=file.filename,
+                        content=content
+                    )
+                    if skill:
+                        imported_count += 1
+
+            except Exception as e:
+                errors.append(f'{file.filename}: {str(e)}')
+
+    # 返回结果
+    if imported_count > 0:
+        message = f'成功导入 {imported_count} 个 Skills'
+        if errors:
+            message += f'，{len(errors)} 个失败'
+
+        return jsonify({
+            'success': True,
+            'message': message,
+            'count': imported_count,
+            'errors': errors
+        })
+    elif errors:
+        return jsonify({
+            'success': False,
+            'message': '导入失败: ' + '; '.join(errors)
+        }), 400
+    else:
+        return jsonify({
+            'success': False,
+            'message': '请提供 Skills 目录路径或上传文件'
+        }), 400
+
+
+@bp.route('/skills/<int:skill_id>/edit', methods=['POST'])
+@login_required
+def edit_skill(skill_id):
+    """编辑 Skill"""
+    from models import Skill, db
+
+    skill = Skill.query.get_or_404(skill_id)
+
+    skill.display_name = request.form.get('display_name', skill.display_name)
+    skill.category = request.form.get('category', skill.category)
+    skill.tier = request.form.get('tier', skill.tier)
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Skill 更新成功'
+    })
+
+
+@bp.route('/skills/<int:skill_id>/delete', methods=['POST'])
+@login_required
+def delete_skill(skill_id):
+    """删除 Skill（软删除）"""
+    from models import Skill, db
+
+    skill = Skill.query.get_or_404(skill_id)
+    skill.status = 'archived'
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Skill 已归档'
+    })

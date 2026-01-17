@@ -802,3 +802,590 @@ h1.art-title, h2.art-title {
 .btn-light {
     border-color: var(--border-color) !important;
 }
+
+/* ==================== Skills 页面样式 ==================== */
+
+/* Skills 瀑布流布局 (与 gallery-masonry 一致) */
+.skill-masonry {
+    column-count: 2;
+    column-gap: 24px;
+    padding: 0 10px;
+    width: 100%;
+    display: block;
+    animation: galleryReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (min-width: 768px) { .skill-masonry { column-count: 2; } }
+@media (min-width: 1200px) { .skill-masonry { column-count: 3; } }
+@media (min-width: 1600px) { .skill-masonry { column-count: 4; } }
+
+@media (max-width: 576px) {
+    .skill-masonry { column-count: 1; }
+}
+
+/* Skill 卡片项 */
+.skill-item {
+    break-inside: avoid;
+    margin-bottom: 24px;
+    position: relative;
+    display: block;
+    max-width: 100%;
+}
+
+/* Skill 卡片框架 (Apple 风格) */
+.skill-frame {
+    position: relative;
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    background-color: var(--sidebar-bg);
+    border: 1px solid rgba(128,128,128,0.1);
+    cursor: pointer;
+    padding: 20px;
+    transform: translateZ(0);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.skill-frame:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: var(--card-hover-shadow);
+    border-color: var(--accent-color);
+    z-index: 10;
+}
+
+.skill-frame:active {
+    transform: scale(0.98);
+}
+
+/* Skill 卡片头部 */
+.skill-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.skill-category-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background-color: rgba(0, 113, 227, 0.1);
+    color: var(--accent-color);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+[data-theme="dark"] .skill-category-badge {
+    background-color: rgba(41, 151, 255, 0.15);
+}
+
+.skill-tier-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background-color: var(--btn-bg);
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+/* Skill 标题 */
+.skill-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+
+/* Skill 描述 */
+.skill-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Skill 标签区 */
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+/* Skill 统计信息 */
+.skill-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    padding-top: 12px;
+    border-top: 1px solid rgba(128,128,128,0.1);
+}
+
+.skill-stats span {
+    display: flex;
+    align-items: center;
+}
+
+.skill-stats i {
+    opacity: 0.6;
+}
+
+/* 旧版 Skills 卡片 (保留兼容) */
+.skill-card {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid var(--border-color);
+    background-color: var(--sidebar-bg);
+}
+
+.skill-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-hover-shadow);
+    border-color: var(--accent-color);
+}
+
+.skill-card .card-header {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.skill-card .card-body {
+    background-color: var(--sidebar-bg);
+    color: var(--text-primary);
+}
+
+.skill-card .card-footer {
+    border-top: 1px solid var(--border-color);
+    background-color: var(--sidebar-bg);
+}
+
+/* Skill 详情页 - Frontmatter 卡片 */
+.border-primary {
+    border-color: var(--accent-color) !important;
+}
+
+.bg-primary {
+    background-color: var(--accent-color) !important;
+}
+
+/* Markdown 内容样式 */
+.markdown-content {
+    color: var(--text-primary);
+    line-height: 1.8;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+    color: var(--text-primary);
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.markdown-content h1 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.markdown-content h2 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.3rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+}
+
+/* 代码块样式 */
+.markdown-content pre {
+    background-color: var(--btn-bg);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    border-left: 4px solid var(--accent-color);
+}
+
+[data-theme="dark"] .markdown-content pre {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.markdown-content code {
+    background-color: var(--btn-bg);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    color: #d63384;
+    font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+[data-theme="dark"] .markdown-content code {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ff7eb6;
+}
+
+.markdown-content pre code {
+    background: none;
+    padding: 0;
+    color: var(--text-primary);
+}
+
+/* 引用块 */
+.markdown-content blockquote {
+    border-left: 4px solid var(--accent-color);
+    padding-left: 1rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 1rem 0;
+}
+
+/* 表格 */
+.markdown-content table {
+    width: 100%;
+    margin: 1rem 0;
+    border-collapse: collapse;
+}
+
+.markdown-content table th,
+.markdown-content table td {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.markdown-content table th {
+    background-color: var(--btn-bg);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .markdown-content table th {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.markdown-content table tr:hover {
+    background-color: var(--btn-hover-bg);
+}
+
+/* 列表 */
+.markdown-content ul,
+.markdown-content ol {
+    padding-left: 2rem;
+    margin: 1rem 0;
+}
+
+.markdown-content li {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.markdown-content li::marker {
+    color: var(--accent-color);
+}
+
+/* 链接 */
+.markdown-content a {
+    color: var(--accent-color);
+    text-decoration: underline;
+    transition: opacity 0.2s;
+}
+
+.markdown-content a:hover {
+    opacity: 0.8;
+}
+
+/* Skills 筛选栏 */
+.form-select,
+.form-control {
+    background-color: var(--sidebar-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .form-control {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.form-select:focus,
+.form-control:focus {
+    background-color: var(--sidebar-bg);
+    border-color: var(--accent-color);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 0.25rem rgba(0, 113, 227, 0.25);
+}
+
+[data-theme="dark"] .form-select:focus,
+[data-theme="dark"] .form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(41, 151, 255, 0.25);
+}
+
+/* 输入组 */
+.input-group-text {
+    background-color: var(--btn-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* 徽章样式 */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+.badge.bg-light {
+    background-color: var(--btn-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color);
+}
+
+.badge.border {
+    border-color: var(--border-color) !important;
+}
+
+/* Alert 样式 */
+.alert {
+    background-color: var(--sidebar-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.alert-info {
+    background-color: rgba(0, 113, 227, 0.1);
+    border-color: rgba(0, 113, 227, 0.2);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .alert-info {
+    background-color: rgba(41, 151, 255, 0.15);
+    border-color: rgba(41, 151, 255, 0.3);
+}
+
+.alert-success {
+    background-color: rgba(52, 199, 89, 0.1);
+    border-color: rgba(52, 199, 89, 0.2);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .alert-success {
+    background-color: rgba(48, 209, 88, 0.15);
+    border-color: rgba(48, 209, 88, 0.3);
+}
+
+.alert-danger {
+    background-color: rgba(255, 59, 48, 0.1);
+    border-color: rgba(255, 59, 48, 0.2);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .alert-danger {
+    background-color: rgba(255, 69, 58, 0.15);
+    border-color: rgba(255, 69, 58, 0.3);
+}
+
+/* 表格样式（管理页面） */
+.table {
+    color: var(--text-primary);
+}
+
+.table th {
+    border-color: var(--border-color);
+    background-color: var(--btn-bg);
+}
+
+.table td {
+    border-color: var(--border-color);
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--btn-hover-bg);
+    color: var(--text-primary);
+}
+
+/* 按钮样式 */
+.btn-outline-primary {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+.btn-outline-secondary {
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--btn-hover-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-outline-success {
+    color: #34c759;
+    border-color: #34c759;
+}
+
+[data-theme="dark"] .btn-outline-success {
+    color: #30d158;
+    border-color: #30d158;
+}
+
+.btn-outline-danger {
+    color: #ff3b30;
+    border-color: #ff3b30;
+}
+
+[data-theme="dark"] .btn-outline-danger {
+    color: #ff453a;
+    border-color: #ff453a;
+}
+
+/* 卡片组件 */
+.card {
+    background-color: var(--sidebar-bg);
+    border-color: var(--border-color);
+}
+
+.card-header {
+    background-color: var(--btn-bg);
+    border-bottom-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .card-header.bg-primary,
+[data-theme="dark"] .card-header.bg-light {
+    color: var(--text-primary);
+}
+
+.card-body {
+    color: var(--text-primary);
+}
+
+.card-footer {
+    background-color: var(--btn-bg);
+    border-top-color: var(--border-color);
+}
+
+/* 阴影 */
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+[data-theme="dark"] .shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 分页 */
+.pagination .page-link {
+    background-color: var(--sidebar-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--btn-hover-bg);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+    background-color: var(--btn-bg);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+/* Toast 提示 */
+.toast-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    min-width: 300px;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* Skills 画廊响应式 */
+@media (max-width: 768px) {
+    .skill-card .card-body {
+        padding: 1rem;
+    }
+
+    .markdown-content {
+        font-size: 0.95rem;
+    }
+
+    .markdown-content pre {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* 深色主题下的文本颜色修正 */
+[data-theme="dark"] .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-primary) !important;
+}
+
+/* Skills 特定颜色 */
+.text-info {
+    color: var(--accent-color) !important;
+}
+
+.bg-info {
+    background-color: var(--accent-color) !important;
+}
+
+[data-theme="dark"] .bg-info {
+    background-color: #2997ff !important;
+}
+
+/* 加载动画 */
+.spinner-border {
+    color: var(--accent-color);
+}
+
+/* 空状态样式 */
+.bi-inbox {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}

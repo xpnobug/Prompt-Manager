@@ -10,3 +10,5 @@ gunicorn==21.2.0
 boto3==1.34.0
 pymysql
 cryptography
+PyYAML==6.0.1
+markdown2==2.4.10
