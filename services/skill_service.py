@@ -39,8 +39,18 @@ class SkillService:
         else:
             allowed_tools_json = '[]'
 
+        # 从 frontmatter 读取分类，默认根据名称判断
+        name = frontmatter.get('name', '')
+        category = frontmatter.get('category', '')
+        if not category:
+            # 如果没有指定分类，根据名称自动判断
+            if name.startswith('mall-'):
+                category = 'project-specific'
+            else:
+                category = 'general'
+
         skill = Skill(
-            name=frontmatter.get('name', ''),
+            name=name,
             display_name=frontmatter.get('name', ''),  # 可后续手动修改
             description=frontmatter.get('description', ''),
             model=frontmatter.get('model', ''),
@@ -50,6 +60,7 @@ class SkillService:
             file_path=file_path,
             trigger_keywords=json.dumps(trigger_keywords, ensure_ascii=False),
             token_estimate=token_estimate,
+            category=category,
             status='active',
             version='1.0'
         )
@@ -90,6 +101,14 @@ class SkillService:
         else:
             allowed_tools_json = '[]'
 
+        # 从 frontmatter 读取分类，默认根据名称判断
+        category = frontmatter.get('category', '')
+        if not category:
+            if name.startswith('mall-'):
+                category = 'project-specific'
+            else:
+                category = 'general'
+
         # 检查是否已存在
         existing = Skill.query.filter_by(name=name).first()
         if existing:
@@ -101,6 +120,7 @@ class SkillService:
             existing.allowed_tools = allowed_tools_json
             existing.trigger_keywords = json.dumps(trigger_keywords, ensure_ascii=False)
             existing.token_estimate = token_estimate
+            existing.category = category  # 更新分类
             db.session.commit()
             return existing
         else:
@@ -116,7 +136,7 @@ class SkillService:
                 file_path='uploaded',
                 trigger_keywords=json.dumps(trigger_keywords, ensure_ascii=False),
                 token_estimate=token_estimate,
-                category='general',
+                category=category,
                 status='active',
                 version='1.0'
             )
@@ -140,6 +160,7 @@ class SkillService:
         if not os.path.exists(skills_dir):
             return skills
 
+        # 方式1: 查找子目录中的 SKILL.md (标准结构)
         for skill_name in os.listdir(skills_dir):
             skill_path = os.path.join(skills_dir, skill_name)
 
@@ -180,6 +201,39 @@ class SkillService:
             except Exception as e:
                 print(f"导入 {skill_name} 失败: {e}")
                 continue
+
+        # 方式2: 递归查找所有 SKILL.md 文件 (灵活结构)
+        if len(skills) == 0:
+            for root, dirs, files in os.walk(skills_dir):
+                for filename in files:
+                    if filename == 'SKILL.md' or filename.endswith('_SKILL.md'):
+                        md_file = os.path.join(root, filename)
+                        try:
+                            skill = SkillService.import_skill_from_file(md_file)
+                            
+                            # 根据名称判断分类
+                            if skill.name and skill.name.startswith('mall-'):
+                                skill.category = 'project-specific'
+                            else:
+                                skill.category = 'general'
+
+                            existing = Skill.query.filter_by(name=skill.name).first()
+                            if existing:
+                                existing.description = skill.description
+                                existing.content = skill.content
+                                existing.model = skill.model
+                                existing.user_invocable = skill.user_invocable
+                                existing.allowed_tools = skill.allowed_tools
+                                existing.trigger_keywords = skill.trigger_keywords
+                                existing.token_estimate = skill.token_estimate
+                                existing.file_path = skill.file_path
+                                skills.append(existing)
+                            else:
+                                db.session.add(skill)
+                                skills.append(skill)
+                        except Exception as e:
+                            print(f"导入 {md_file} 失败: {e}")
+                            continue
 
         db.session.commit()
         return skills

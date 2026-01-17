@@ -313,8 +313,8 @@
 </div>
 
 <script>
-    // 文件列表存储
-    let selectedFiles = [];
+    // 文件列表存储 (绑定到 window 确保全局可访问)
+    window.selectedFiles = [];
 
     // 导入方式切换
     document.querySelectorAll('.import-method-btn').forEach(btn => {
@@ -389,18 +389,21 @@
 
     // 添加文件到列表
     function addFiles(files) {
+        console.log('addFiles 被调用, 文件数:', files.length);
         files.forEach(file => {
             // 避免重复
-            if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
-                selectedFiles.push(file);
+            if (!window.selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                window.selectedFiles.push(file);
+                console.log('已添加文件:', file.name);
             }
         });
+        console.log('当前 selectedFiles:', window.selectedFiles);
         updateFileList();
     }
 
     // 更新文件列表显示
     function updateFileList() {
-        if (selectedFiles.length === 0) {
+        if (window.selectedFiles.length === 0) {
             fileList.classList.add('d-none');
             btnUpload.classList.add('d-none');
             return;
@@ -409,7 +412,7 @@
         fileList.classList.remove('d-none');
         btnUpload.classList.remove('d-none');
 
-        fileList.innerHTML = selectedFiles.map((file, index) => `
+        fileList.innerHTML = window.selectedFiles.map((file, index) => `
             <div class="file-item">
                 <i class="bi ${file.name.endsWith('.zip') ? 'bi-file-earmark-zip-fill' : 'bi-file-earmark-text-fill'}"></i>
                 <span>${file.name}</span>
@@ -421,7 +424,7 @@
 
     // 删除文件
     function removeFile(index) {
-        selectedFiles.splice(index, 1);
+        window.selectedFiles.splice(index, 1);
         updateFileList();
     }
 
@@ -440,15 +443,21 @@
         const skillsDir = form.querySelector('#skills-dir').value;
         const resultDiv = document.getElementById('import-result');
 
+        // 调试日志
+        console.log('导入检查 - selectedFiles:', window.selectedFiles);
+        console.log('导入检查 - skillsDir:', skillsDir);
+
         // 检查是否有输入
         const hasDirectory = skillsDir && skillsDir.trim();
-        const hasFiles = selectedFiles.length > 0;
+        const hasFiles = window.selectedFiles && window.selectedFiles.length > 0;
+
+        console.log('hasDirectory:', hasDirectory, 'hasFiles:', hasFiles);
 
         if (!hasDirectory && !hasFiles) {
             resultDiv.innerHTML = `
             <div class="alert alert-danger rounded-3 d-flex align-items-center" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                请输入 Skills 目录路径或拖拽上传文件
+                请提供 Skills 目录路径或上传文件
             </div>`;
             return;
         }
@@ -469,7 +478,7 @@
 
             // 添加上传文件（使用 selectedFiles）
             if (hasFiles) {
-                selectedFiles.forEach(file => {
+                window.selectedFiles.forEach(file => {
                     formData.append('skill_files', file);
                 });
             }

@@ -82,27 +82,50 @@ def sync_database():
             # 注意：如果你的 Model 比 数据库 新，后续的 migrate 会自动检测出差异
             stamp()
 
-        # 5. 执行迁移 (生成脚本 -> 应用变更)
-        print("🔍 正在扫描模型变动 (Auto Migrate)...")
+        # 5. 处理版本冲突 & 应用迁移
+        print("🔍 正在检查数据库迁移状态...")
 
-        # 使用时间戳防止迁移脚本文件名冲突
-        migration_message = f"auto_update_{int(time.time())}"
+        # 先检查是否有无效的版本记录
+        if has_version_table:
+            try:
+                # 尝试 upgrade，如果版本无效会报错
+                upgrade()
+                print("✅ 数据库迁移状态正常。")
+            except Exception as e:
+                error_msg = str(e)
+                if "Can't locate revision" in error_msg or "Target database is not up to date" in error_msg:
+                    print(f"⚠️  [自动修复] 检测到无效的迁移版本记录...")
+                    print("🔄 正在重置迁移版本表...")
+                    try:
+                        with db.engine.connect() as conn:
+                            conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
+                            conn.commit()
+                        print("✅ 版本表已删除。")
+                        
+                        # 重新标记当前数据库状态
+                        print("🏷️  正在重新标记数据库状态 (Stamping)...")
+                        stamp()
+                        print("✅ 数据库状态已标记为最新。")
+                    except Exception as e2:
+                        print(f"❌ 重置失败: {e2}")
+                        print("⚠️  请手动执行: DROP TABLE alembic_version;")
+                else:
+                    print(f"ℹ️  升级提示: {e}")
 
+        # 6. 检测新的模型变更
         try:
-            # 尝试生成迁移脚本
-            # 这一步会对比 models.py 和 数据库 的差异
-            # 如果有差异（比如你加了新字段），它会生成新的脚本
+            # 使用时间戳防止迁移脚本文件名冲突
+            migration_message = f"auto_update_{int(time.time())}"
             migrate(message=migration_message)
-        except Exception as e:
-            print(f"ℹ️  生成迁移脚本提示 (通常可忽略): {e}")
+            print("📝 检测到新变更，已生成迁移脚本。")
 
-        try:
-            print("🚀 正在应用数据库变更 (Upgrade)...")
+            # 应用新生成的迁移
             upgrade()
             print("✅ 数据库结构已同步至最新。")
         except Exception as e:
-            print(f"❌ 升级过程中发生错误: {e}")
-            print("提示: 如果是'No changes detected'或'alembic_version'相关错误，通常说明已是最新。")
+            # "No changes in schema detected" 是正常情况
+            if "No changes" not in str(e):
+                print(f"ℹ️  迁移提示: {e}")
 
         # 6. 确保种子数据 (管理员)
         ensure_admin_user()

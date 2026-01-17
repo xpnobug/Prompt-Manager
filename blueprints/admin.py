@@ -561,14 +561,21 @@ def import_skills():
                     # 处理 ZIP 文件
                     zip_path = os.path.join(temp_dir, file.filename)
                     file.save(zip_path)
+                    current_app.logger.info(f"ZIP 文件已保存: {zip_path}")
 
                     # 解压 ZIP
                     extract_dir = os.path.join(temp_dir, 'extracted_' + str(int(time.time())))
                     with zipfile.ZipFile(zip_path, 'r') as zf:
                         zf.extractall(extract_dir)
+                        current_app.logger.info(f"ZIP 解压到: {extract_dir}, 文件列表: {zf.namelist()}")
+
+                    # 列出解压后的内容
+                    for root, dirs, files_list in os.walk(extract_dir):
+                        current_app.logger.info(f"目录 {root}: dirs={dirs}, files={files_list}")
 
                     # 导入解压后的目录
                     skills = SkillService.batch_import_from_directory(extract_dir)
+                    current_app.logger.info(f"从 ZIP 导入 Skills 数量: {len(skills)}")
                     imported_count += len(skills)
 
                     # 清理
