@@ -174,11 +174,12 @@ class SkillService:
             try:
                 skill = SkillService.import_skill_from_file(md_file)
 
-                # 自动分类
-                if skill_name.startswith('mall-'):
-                    skill.category = 'project-specific'
-                else:
-                    skill.category = 'general'
+                # 如果 frontmatter 没有指定分类，则根据目录名判断
+                if not skill.category:
+                    if skill_name.startswith('mall-'):
+                        skill.category = 'project-specific'
+                    else:
+                        skill.category = 'general'
 
                 # 检查是否已存在
                 existing = Skill.query.filter_by(name=skill.name).first()
@@ -211,11 +212,12 @@ class SkillService:
                         try:
                             skill = SkillService.import_skill_from_file(md_file)
                             
-                            # 根据名称判断分类
-                            if skill.name and skill.name.startswith('mall-'):
-                                skill.category = 'project-specific'
-                            else:
-                                skill.category = 'general'
+                            # 如果 frontmatter 没有指定分类，根据名称判断
+                            if not skill.category:
+                                if skill.name and skill.name.startswith('mall-'):
+                                    skill.category = 'project-specific'
+                                else:
+                                    skill.category = 'general'
 
                             existing = Skill.query.filter_by(name=skill.name).first()
                             if existing:
@@ -227,6 +229,7 @@ class SkillService:
                                 existing.trigger_keywords = skill.trigger_keywords
                                 existing.token_estimate = skill.token_estimate
                                 existing.file_path = skill.file_path
+                                existing.category = skill.category  # 同步更新分类
                                 skills.append(existing)
                             else:
                                 db.session.add(skill)
